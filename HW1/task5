@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+class Statistics {
+    int n = 0;
+    float minimal = 0;
+    float maximal = 0;
+    float summary = 0;
+    float E = 0;
+    float nD = 0;
+public:
+    void update(float x);            // добавить новый элемент
+    int count() const noexcept;
+    float min() const noexcept;
+    float max() const noexcept;
+    float sum() const noexcept;
+    float mean() const noexcept;     // среднее
+    float variance() const noexcept; // дисперсия
+};
+
+void Statistics::update(float x)
+{
+    n++;
+    if (n == 1)
+    {
+        minimal = x;
+        maximal = x;
+    }
+    else
+    {
+        minimal = std:: min(minimal, x);
+        maximal = std:: max(maximal, x);
+    }
+    summary += x;
+
+    float newE = E + (x - E) / (float) n;
+    nD += (x - E) * (x - newE);
+    E = newE;
+}
+
+int Statistics::count() const noexcept
+{
+    return n;
+}
+
+float Statistics::min() const noexcept
+{
+    return minimal;
+}
+
+float Statistics::max() const noexcept
+{
+    return maximal;
+}
+
+float Statistics::sum() const noexcept
+{
+    return summary;
+}
+
+float Statistics::mean() const noexcept
+{
+    return E;
+}
+
+float Statistics::variance() const noexcept
+{
+    return nD / (float) n;
+}
+
+int main()
+{
+    Statistics a;
+
+    for (int i = 1; i <= 1000; i++){
+        a.update(1.f/i);
+    }
+
+    cout << "mean: " << a.mean() << endl; //near ln 1000 / 1000
+    cout << "variance: " <<a.variance() << endl;
+
+    return 0;
+}
