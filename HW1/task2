@@ -1,0 +1,38 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(float f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+float polynomial(float x, const float* a, int n){
+    float ans = 0;
+    for(int i = 0; i <= n; i++){
+        ans = fma(ans,x,a[n-i]);
+    }
+    return ans;
+};
+
+int main()
+{
+    srand(55);
+    int n = 4;
+    float a[n] {1.f/7, 1.f/5, 1.f/3, 1.f};
+    //float x = rand() / static_cast<float>(RAND_MAX);
+    float x = 3.1;
+    cout << x << endl;
+    float res = polynomial(x, a, n-1);
+    cout << res << endl;
+    print(res);
+    return 0;
+}
+
+
+/*
+((a_3 *' x +' a_2) *' x +' a_1) *' x +' a_0 = (((((((a_3 * x) (1 + d_1) + a_2) (1 + d_2)) * x * (1 + d_3) + a_1) * (1 + d_4)) * x * (1 + d_5) + a_0) * (1 + d_6) -- погрешность в лоб
+
+ ((a_3 *' x +' a_2) *' x +' a_1) *' x +' a_0 = (((((((a_3 * x) + a_2) (1 + d1)) * x  + a_1) * (1 + d2)) * x + a_0) * (1 + d3) -- формула с погрешностью в случае применения функции.
+
+*/
