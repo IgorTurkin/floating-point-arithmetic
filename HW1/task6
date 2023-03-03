@@ -19,6 +19,7 @@ float length(const float* x, int n)
 
         res += (q / m) * (q / m);
     }
+    
     return m * sqrt(res);
 }
 
