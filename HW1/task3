@@ -1,0 +1,45 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(float f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+float kahan_sum(const float* x, int n){
+    float ans = 0, c = 0, t = 0, y = 0;
+    for(int i = 0; i < n; i++){
+        y = x[i] - c;
+        t = ans + y;
+        c = (t - ans) - y;
+        //cout << c << endl;
+        ans = t;
+    }
+    return ans;
+};
+
+float justsum(const float* x, int n){
+    float ans = 0;
+    for(int i = 0; i < n; i++){
+        ans += x[i];
+    }
+    return ans;
+};
+
+int main()
+{
+    srand(55);
+    int sum = 239, k = 1443, n = k * sum;
+    float a[n];
+
+    for (int i = 0; i < n; i++){
+        a[i] = 1.f / k;
+    }
+
+    float res = kahan_sum(a, n);
+    cout << "kahan:  " << res << endl;
+    cout << "head-on:  " << justsum(a, n)<< endl;
+    cout << "real:  " << sum << endl;
+    return 0;
+}
