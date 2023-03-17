@@ -1,0 +1,153 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(long double f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+long double pi = M_PI;
+long double eps = 0.00001;
+
+long double f (long double x){
+    return 10.0 + x * x - 10.0 * cos (2.0 * pi * x);
+}
+
+long double df (long double x){
+    return 2.0 * x + 20.0 * pi * sin (2.0 * pi * x);
+}
+
+long double ddf (long double x){
+    return 2.0 + 40.0 * pi * pi * cos (2.0 * pi * x);
+}
+
+long double nega(long double a, long double b){
+    long double x,t;
+    for(int i = 0; i < 1000; i++){
+        t = (long double) rand();
+        x = a + t/RAND_MAX * (b-a);
+        if (df(x) < 0){
+            cout << "nega: " <<  x << endl;
+            return x;
+        }
+    }
+    return b + 1;
+};
+
+long double posi(long double a, long double b){
+    long double x,t;
+    for(int i = 0; i < 1000; i++){
+        t = (long double) rand();
+        x = a + t/RAND_MAX * (b-a);
+
+        if (df(x) > 0) {
+            cout <<"posi: " << x << endl;
+            return x;
+        }
+    }
+
+    return b + 1;
+};
+
+long double bisector_ext (long double a, long double b){
+
+    cout << "BISECTOR:" << endl;
+
+    long double neg = nega(a,b); long double pos = posi(a,b); long double mid;
+    if (neg > b + 0.5){
+        cout << "Seems like convex" << endl;
+        exit(-1);
+    }
+    if (pos > b + 0.5){
+        cout << "Seems like concave" << endl;
+        exit(-1);
+    }
+
+    int iter = 0;
+
+    while (abs (neg-pos) > eps){
+        iter++;
+
+        mid = (neg + pos)/2;
+
+        if(df(mid) > 0 ){
+            pos = mid;
+        }
+        else
+        {
+            neg = mid;
+        }
+
+
+    }
+    cout << "iterations: " << iter << endl;
+    return neg;
+}
+
+
+pair <long double, long double> Newton_ext (long double x, long double y){
+
+    cout << "Newton:" << endl;
+
+    long double x_old = x;
+    long double x_new = x - df(x_old)/ddf(x_old);
+    long double temp;
+
+    long double y_old = y;
+    long double y_new = y - df(y_old)/ddf(y_old);
+
+    int iter = 1;
+
+    while (abs (x_new - x_old) > eps || abs (y_new - y_old) > eps){
+        iter++;
+        temp = x_new;
+        x_new -= df(x_new)/ddf(x_new);
+        x_old = temp;
+
+        temp = y_new;
+        y_new -= df(y_new)/ddf(y_new);
+        y_old = temp;
+
+//        cout <<"Is x: " << x_new << endl;
+        if(iter > 50){
+            exit(3);
+        }
+    }
+    cout << "iterations: " << iter << endl;
+    return {x_new, y_new};
+}
+
+
+
+int main()
+{
+    srand(133);
+    long double a = -10, b = 5;
+    long double x = bisector_ext(a, b);
+    long double y = bisector_ext(a, b);
+
+    cout << "extremum: (" << x << " " << y <<  "), f(ext): " << f(x) + f(y) << endl;
+
+    long double t = (long double) rand();
+    long double q = a + t/RAND_MAX * (b-a);
+    t = (long double) rand();
+    long double r = a + t/RAND_MAX * (b-a);
+
+    pair <long double, long double> res = Newton_ext(q, r);
+
+    cout << "extremum: (" << res.first << "  " << res.second <<  "), f(ext): " << f(res.first) + f(res.second) << endl;
+
+    return 0;
+}
+
+
+/*
+Размерность не влияет на количество итераций метода Ньютона и сильно сказывается на скорости метода бисекции. 
+    В покоординатном методе количество шагов будет 400 вместо 20.
+Вообще сложно представить корректный вариант алгоритма бисекции в общем случае, поэтому здесь я не придумал ничего лучше, 
+  чем явно воспользоваться покоординатной разделённостью функции. Если попробовать построить алгоритм, в котором строится функция y(x), где df_y (x, y(x)) = 0,
+  то значение этой функции будет случайным среди ряда возможных, а из-за этого при попытке сделать аналогичный переход по координате x середина
+  отрезка (x_1, y(x_1)) (x_2, y(x_2)) не будет точкой, где df_y = 0 (например, в качесте y может выступать 0 и 0.5);
+  Была ещё произведена попытка придумать решение, где вместо отрезка используется прямоугольник, но там проблема с тем, что не ясно, как его делить.
+*/
