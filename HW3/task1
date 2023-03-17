@@ -1,0 +1,142 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(long double f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+long double pi = M_PI;
+long double eps = 0.00001;
+
+long double f (long double x){
+    return 10.0 + x * x - 10.0 * cos (2.0 * pi * x);
+}
+
+long double df (long double x){
+    return 2.0 * x + 20.0 * pi * sin (2.0 * pi * x);
+}
+
+long double ddf (long double x){
+    return 2.0 + 40.0 * pi * pi * cos (2.0 * pi * x);
+}
+
+long double nega(long double a, long double b){
+    long double x,t;
+    for(int i = 0; i < 1000; i++){
+        t = (long double) rand();
+        x = a + t/RAND_MAX * (b-a);
+        if (df(x) < 0){
+            cout << "nega: " <<  x << endl;
+            return x;
+        }
+    }
+    return b + 1;
+};
+
+long double posi(long double a, long double b){
+    long double x,t;
+    for(int i = 0; i < 1000; i++){
+        t = (long double) rand();
+        x = a + t/RAND_MAX * (b-a);
+
+        if (df(x) > 0) {
+            cout <<"posi: " << x << endl;
+            return x;
+        }
+    }
+
+    return b + 1;
+};
+
+long double bisector_ext (long double a, long double b){
+
+    cout << "BISECTOR:" << endl;
+
+    long double neg = nega(a,b); long double pos = posi(a,b); long double mid;
+    if (neg > b + 0.5){
+        cout << "Seems like convex" << endl;
+        exit(-1);
+    }
+    if (pos > b + 0.5){
+        cout << "Seems like concave" << endl;
+        exit(-1);
+    }
+
+    int iter = 0;
+
+    while (abs (neg-pos) > eps){
+        iter++;
+
+        mid = (neg + pos)/2;
+
+        if(df(mid) > 0 ){
+            pos = mid;
+        }
+        else
+        {
+            neg = mid;
+        }
+
+
+    }
+    cout << "iterations: " << iter << endl;
+    return neg;
+}
+
+
+long double Newton_ext (long double x){
+
+    cout << "Newton:" << endl;
+
+    long double x_old = x;
+    long double x_new = x - df(x_old)/ddf(x_old);
+    long double temp;
+
+    int iter = 1;
+
+    while (abs (x_new - x_old) > eps){
+        iter++;
+        temp = x_new;
+        x_new -= df(x_new)/ddf(x_new);
+        x_old = temp;
+
+//        cout <<"Is x: " << x_new << endl;
+        if(iter > 50){
+            exit(3);
+        }
+    }
+    cout << "iterations: " << iter << endl;
+    return x_new;
+}
+
+
+
+int main()
+{
+    srand(55);
+    long double a = -10, b = 5;
+    long double x = bisector_ext(a, b);
+
+    cout << "extremum: " << x <<  ", f(ext): " << f(x) << endl;
+
+    long double t = (long double) rand();
+    long double q = a + t/RAND_MAX * (b-a);
+
+    long double res = Newton_ext(q);
+
+    cout << "extremum: " << res <<  ", f(ext): " << f(res) << endl;
+
+    return 0;
+}
+
+
+/*
+Среди факторов, влияющих на скорость и эффективность, я выделил 2:
+1) Диапазон. Если не иметь понятия о том, что поведение функции относительно адекватное в окрестности нуля,
+    и установить a и b порядка -1000 и 1000, то из-за большого знака df метод Ньютона
+    отправит нас в увлекательное путешествие по разным участкам выпуклости и наверняка не закончит за разумное время.
+2) eps. При малом диапозоне уменьшение eps даёт явное преимущество методу Ньютона. Количество шагов алгоритма
+    деления отрезка требует примерно квадрат от количества шагов алгоритма Ньютона.
+*/
