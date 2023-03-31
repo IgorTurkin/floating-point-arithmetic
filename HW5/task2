@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(long double f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+long double pi = M_PI;
+long double eps = 0.00001;
+
+long double f (long double x){
+    return  sin(x);
+}
+
+
+
+long double lindif(long double a,int n){  //ошибка линейной интерполяции
+    long double d = 2 * pi / n;
+    long double sum = 0.0;
+    for(int i = 0; i < n; i++){
+        sum += abs((f(a + i * d) + f(a + (i + 1) * d))/2 - f(a + (i + 1/2) * d)); //берём усреднение и вычитаем
+    }
+    return sum / n;
+};
+
+//следующие 3 функции считают коэффициенты параболы по трём точкам. Погрешность от такого пересчёта не так велика.
+long double a(long double x1,long double x2,long double x3){
+    return (f(x3) - f(x1)) / ((x3 - x1) * (x3 - x2)) - (f(x2) - f(x1)) / ((x2 - x1) * (x3 - x2));
+}
+
+long double b(long double x1,long double x2,long double x3){
+    return (f(x2) - f(x1)) / (x2 - x1) - a(x1, x2, x3) * (x2 + x1);
+}
+
+long double c(long double x1,long double x2,long double x3){
+    return f(x1) - b(x1,x2,x3) * x1 - a(x1,x2,x3) * x1 * x1;
+}
+
+long double top(long double x1,long double x2,long double x3){
+    return -b(x1,x2,x3) / (2 * a(x1,x2,x3));
+}
+
+long double parabol(long double a,long double b,long double c, long double x){
+    return a * x * x + b * x + c;
+}
+
+long double sqrdif(long double start, int n){
+    long double d = 2 * pi / n;
+    long double sum = 0.0;
+    for(int i = 0; i < n; i++){
+        long double aour = a(start + d * i, start + d * (i + 1), start + d * (i + 2));  //построение параболы
+        long double bour = b(start + d * i, start + d * (i + 1), start + d * (i + 2));
+        long double cour = c(start + d * i, start + d * (i + 1), start + d * (i + 2));
+        sum += abs(parabol(aour, bour, cour, start + d * (i + 1/2) ) - f(start + d * (i + 1/2)) ); // подстановка
+    }
+    return sum / n; //среднее арифметическое ошибки
+};
+
+
+int main()
+{
+    srand(1326);
+    long double t = (long double) rand();
+    long double start = (t/RAND_MAX)  * 2 * pi;
+    cout <<"part of period: "<<  start/(2 * pi) << endl;
+    int n = 10;
+    long double d = 2 * pi / n;
+    for (int i = 0; i < n; i++){
+        if(f(start + d * i) > f(start + d * (i+1)) && f(start + d * i) > f(start + d * (i-1))){
+            cout << " top is: " << top (start + d * (i-1), start + d * i, start + d * (i+1) ) << ", part of period: " << top (start + d * (i-1), start + d * i, start + d * (i+1) ) / pi /2 <<endl;
+        }
+        if(f(start + d * i) < f(start + d * (i+1)) && f(start + d * i) < f(start + d * (i-1))){
+            cout << " bot is: " << top (start + d * (i-1), start + d * i, start + d * (i+1) ) << ", part of period: " << top (start + d * (i-1), start + d * i, start + d * (i+1) ) / pi /2 << endl;
+        }
+    }
+        // ошибка измеряется тысячными долями периода
+    return 0;
+}
