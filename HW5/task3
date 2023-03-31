@@ -1,0 +1,206 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(long double f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+long double pi = M_PI;
+long double eps = 0.001;
+
+long double f (long double x){
+    return  sin(x);
+}
+
+
+//следующие 3 функции считают коэффициенты параболы по трём точкам. Погрешность от такого пересчёта не так велика.
+long double a(long double x1,long double x2,long double x3){
+    return (f(x3) - f(x1)) / ((x3 - x1) * (x3 - x2)) - (f(x2) - f(x1)) / ((x2 - x1) * (x3 - x2));
+}
+
+long double b(long double x1,long double x2,long double x3){
+    return (f(x2) - f(x1)) / (x2 - x1) - a(x1, x2, x3) * (x2 + x1);
+}
+
+long double c(long double x1,long double x2,long double x3){
+    return f(x1) - b(x1,x2,x3) * x1 - a(x1,x2,x3) * x1 * x1;
+}
+
+long double top(long double x1,long double x2,long double x3){
+    return -b(x1,x2,x3) / (2 * a(x1,x2,x3));
+}
+
+long double parabol(long double a,long double b,long double c, long double x){
+    return a * x * x + b * x + c;
+}
+
+
+struct point{
+    long double x;
+    long double y;
+};
+
+//некоторые операции на точки как комплексные числа + функция площади
+
+point multi(point a, point b){
+    long double x = a.x * b.x - a.y * b.y;
+    long double y = a.y * b.x + a.x * b.y;
+    point t;
+    t.x = x;
+    t.y = y;
+    return t;
+}
+
+long double s(point a, point b){
+    return a.x * b.y - a.y * b.x;
+
+}
+
+point sm(point a, point b){
+    long double x = a.x + b.x;
+    long double y = a.y + b.y;
+    point t;
+    t.x = x;
+    t.y = y;
+    return t;
+}
+
+point dif(point a, point b){
+    long double x = a.x - b.x;
+    long double y = a.y - b.y;
+    point t;
+    t.x = x;
+    t.y = y;
+    return t;
+}
+
+point pt(long double x, long double y){
+    point a;
+    a.x = x;
+    a.y = y;
+    return a;
+}
+
+long double dist(point a, point b){
+    return (a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y);
+}
+
+pair<bool, point> try_to_find(point ap, point bp, int n){ //функция поиска точки пересечения синусоиды с отрезком.
+    long double d = 2 * pi / n;
+    int left = -1000; int right = 1000; int mid;
+    point l; point r; point m;
+
+    while (left + 1 < right){ // бинпоиск по принципу "с какой стороны точка от прямой"
+        mid = (left + right)/2;
+        l = pt (left * d, f(left * d));
+        r = pt (right * d, f(right * d));
+        m = pt (mid * d, f(mid * d));
+
+        if (s(dif(bp,ap), dif(m,ap)) * s(dif(bp,ap), dif(r,ap)) > 0){
+            right = mid;
+        } else if (s(dif(bp,ap), dif(m,ap)) * s(dif(bp,ap), dif(l,ap)) > 0){
+            left = mid;
+        } else {
+            left = mid;
+            cout << "something is going wrong" << endl;
+        }
+    }
+
+    //применение интерполяции
+    long double aour = a(left * d, (left + 1) * d, (left + 2) * d );
+    long double bour = b(left * d, (left + 1) * d, (left + 2) * d );
+    long double cour = c(left * d, (left + 1) * d, (left + 2) * d );
+
+    if (ap.x != bp.x){
+        long double k = (ap.y - bp.y) / (ap.x - bp.x);
+        long double q = ap.y - k * ap.x;
+                                                        //пересекаем прямую с параболой
+        long double D = (bour - k)*(bour - k) - 4 * aour * (cour - q);
+        if ( D < 0) return {false, l};
+
+        long double ans1 = (-(bour - k) - sqrt(D ))/ (2 * aour);
+        long double ans1y = parabol(aour, bour, cour, ans1);
+
+
+        long double ans2 = (-(bour - k) + sqrt(D ))/ (2 * aour);
+        long double ans2y = parabol(aour, bour, cour, ans2);
+
+        if ((ans1y - ap.y)*(ans1y - bp.y) <= eps && (ans2y - ap.y) * (ans2y - bp.y) <= eps){ //если вдруг две точки будут
+            cout << ans2 << " " << ans2y << endl;
+        }
+
+        if ((ans1y - ap.y)*(ans1y - bp.y) <= eps) return {true, pt(ans1,ans1y)}; //проверяем, что лежит на отрезке
+        if ((ans2y - ap.y) * (ans2y - bp.y) <= eps) return {true, pt(ans2,ans2y)};
+    }else{
+        long double ans1 = ap.x;
+        long double ans1y = parabol(aour, bour, cour, ans1);
+        if ((ans1y - ap.y) * (ans1y - bp.y) <= eps) return {true, pt(ans1,ans1y)};
+    }
+
+    return {false, l};
+}
+
+int main()
+{
+    srand(133246);
+    long double a = 5; long double b = 10;
+    long double t = (long double) rand();
+    long double alpha = (t/RAND_MAX)  * 2 * pi;
+    point rot = pt (cos(alpha), sin(alpha));
+
+    long double s = (long double) rand();
+    long double st = (s/RAND_MAX) * 2 * pi;
+    point start;
+    start.x = st; start.y = f(st);
+
+    point ap = sm(multi(pt(a,0),rot),start);
+    point bp = sm(multi(pt(a,b),rot),start);
+    point cp = sm(multi(pt(0,b),rot),start);
+
+    cout <<"angle: "<<  360 * alpha/(2 * pi) << endl;
+
+    cout << start.x << ' ' << start.y << endl << ap.x << ' ' << ap.y << endl << bp.x << ' ' << bp.y << endl << cp.x << ' ' << cp.y << endl;
+
+    int n = 10;
+
+    cout <<"Points I've found: " << endl;
+
+    //проверка по каждому отрезку
+
+    cout <<"OA: ";
+    pair<bool, point> ans = try_to_find(start, ap, n);
+
+    if (ans.first){
+        cout   << ans.second.x << ' ' << ans.second.y ;
+    }
+
+    cout << endl;
+
+    cout <<"AB: ";
+    ans = try_to_find(ap, bp, n);
+
+    if (ans.first){
+        cout   << ans.second.x << ' ' << ans.second.y ;
+    }
+    cout << endl;
+    cout <<"BC: ";
+    ans = try_to_find(bp, cp, n);
+
+    if (ans.first){
+        cout  << ans.second.x << ' ' << ans.second.y ;
+    }
+    cout << endl;
+    cout <<"CO: ";
+    ans = try_to_find(cp, start, n);
+
+    if (ans.first){
+        cout  << ans.second.x << ' ' << ans.second.y << endl;
+    }
+
+    return 0;
+}
+
+
+
