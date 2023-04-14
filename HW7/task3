@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(long double f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+long double pi = M_PI;
+long double eps = 0.00001;
+
+long double f (long double alpha, long double x, long double x1, long double t){
+    return  exp(-x1*x1) * exp(-(x-x1)*(x-x1)/(2*alpha*t));
+}
+
+long double real(long double alpha, long double len, long double t, long double x){
+    long double sum = 0;
+    long double step = len / 10000;
+    for(int i = 0; i < 10000; i++){
+        sum += f(alpha, x, (i + 1/2) * step, t);
+    }
+    return sum * step / 2 / sqrt(pi * alpha * t);
+}
+
+int main()
+{
+    srand(1326);
+    long double alpha = 3;
+    long double len = 10;
+
+    for (int t = 1; t < 1000; t++){
+        long double mx = -100000;
+        long double mn = 100000;
+        for(int a = 0; a <= len; a++){
+            long double temp = real(alpha, len, t, a);
+            mx = max(mx, temp);
+            mn = min(mn, temp);
+        }
+        if((mx - mn)/mx < 0.5){
+            cout << "temperature: " << mx << " time: " << t;
+            exit(0);
+        }
+    }
+
+    return 0;
+}
