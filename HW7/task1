@@ -1,0 +1,46 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+void print(long double f) {
+    std::cout << std::bitset<32>(*reinterpret_cast<uint32_t*>(&f)) << '\n';
+}
+
+long double pi = M_PI;
+long double eps = 0.00001;
+
+long double f (long double h, long double x){
+    return  exp(-h*h*(1+x*x)/2)/(1+x*x);
+}
+
+long double real(long double h, long double a){
+    long double sum = 0;
+    long double step = a / 10000;
+    for(int i = 0; i < 10000; i++){
+        sum += f(h, i * step);
+    }
+    return sum / 10000 / 2 / pi;
+}
+
+long double newton (long double h, long double a){
+    long double step = a / 9;
+    long double sum = 0;
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j <= 3; j++){
+            sum += f (h, (3 * i + j) * step) * (3 - (j-1)*(j-2))/8;
+        }
+    }
+    return sum * step / 3 / 2 / pi;
+}
+
+
+int main()
+{
+    srand(1326);
+    long double h = 0.3;
+    long double a = 10;
+    cout << "real: " << real(h, a) << endl << "newton: " << newton(h,a);
+
+    return 0;
+}
